@@ -1,0 +1,51 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+.venv/
+env/
+ENV/
+Pipfile.lock
+
+# Environment variables and secrets
+.env
+*.env
+
+# PostgreSQL dump files or DB backups
+*.sql
+*.dump
+
+# VSCode or IDE folders
+.vscode/
+.idea/
+
+# Log files
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# pytest cache
+.pytest_cache/
+
+# mypy / type checker
+.mypy_cache/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Test or coverage output
+htmlcov/
+.coverage
+coverage.xml
+.cache
+
+# pyinstaller build
+dist/
+build/
+*.spec
