@@ -53,5 +53,25 @@ class Payment:
         payments = self.db.fetchall()
         return payments
 
+    def view_history(self, user_id: int):
+        # Get all loans for the user
+        self.db.execute("SELECT id FROM loans WHERE user_id = %s", (user_id,))
+        loans = self.db.fetchall()
+
+        if not loans:
+            print("No loans found for this user.")
+            return
+
+        for loan in loans:
+            loan_id = loan[0]
+            print(f"\n--- Payment History for Loan ID: {loan_id} ---")
+            payments = self.get_payment_history(loan_id)
+            if not payments:
+                print("No payments made yet.")
+            else:
+                for payment in payments:
+                    payment_id, amount, date = payment
+                    print(f"Payment ID: {payment_id}, Amount: {amount:.2f}, Date: {date}")
+
     def close(self):
         self.db.close()

@@ -2,109 +2,115 @@ import getpass
 from user import User
 from loan import Loan
 from payment import Payment
+from decimal import Decimal
+import re
+
+user = User()
+loan = Loan()
+payment = Payment()
+
+# Validation utilities
+def is_valid_username(username):
+    return bool(re.match(r'^[a-zA-Z0-9_]{3,30}$', username))
+
+def is_valid_password(password):
+    return len(password.strip()) > 0
+
+def get_valid_number(prompt, positive_only=True):
+    while True:
+        value = input(prompt).strip()
+        try:
+            num = float(value)
+            if positive_only and num <= 0:
+                raise ValueError
+            return num
+        except ValueError:
+            print("Invalid number. Please enter a valid positive number.")
+
+def get_valid_option(prompt, options):
+    while True:
+        choice = input(prompt).strip()
+        if choice in options:
+            return choice
+        print("Invalid option. Please choose from", ", ".join(options))
+
 
 def main_menu(user_id, username):
-    loan = Loan()
-    payment = Payment()
-
     while True:
-        print("\n--- Loan Application System ---")
-        print(f"Logged in as: {username}")
-        print("1. Apply for Loan")
-        print("2. Check Outstanding Balance")
-        print("3. View All Loans")
-        print("4. Make a Payment")
-        print("5. View Payment History")
-        print("6. Logout")
+        print(f"\nWelcome, {username}!")
+        print("1. Apply for a Loan")
+        print("2. Make a Payment")
+        print("3. Check Balance")
+        print("4. View Payment History")
+        print("5. Logout")
 
-        choice = input("Select an option: ")
+        choice = get_valid_option("Select an option: ", ['1', '2', '3', '4', '5'])
 
         if choice == '1':
-            amount = float(input("Enter loan amount: "))
+            amount = get_valid_number("Enter loan amount: ")
             loan.apply_loan(user_id, amount)
 
         elif choice == '2':
-            balance = loan.get_outstanding_balance(user_id)
-            print(f"Your outstanding loan balance is: {balance:.2f}")
+            user_loans = loan.get_loans(user_id)
+            if not user_loans:
+                print("No active loans to make a payment on.")
+                continue
+
+            print("Your loans:")
+            for l in user_loans:
+                print(f"Loan ID: {l[0]}, Remaining: {l[1]}, Status: {l[2]}")
+
+            loan_ids = [str(l[0]) for l in user_loans]
+            loan_id = get_valid_option("Enter Loan ID to make payment: ", loan_ids)
+            amount = get_valid_number("Enter payment amount: ")
+
+            payment.make_payment(int(loan_id), amount)
 
         elif choice == '3':
-            loans = loan.get_loans(user_id)
-            if loans:
-                for l in loans:
-                    print(f"Loan ID: {l[0]}, Amount: {l[1]}, Remaining: {l[2]}, Status: {l[3]}, Created: {l[4]}")
-            else:
-                print("No loans found.")
+            loan.check_balance(user_id)
 
         elif choice == '4':
-            loans = loan.get_loans(user_id)
-            if not loans:
-                print("No loans available to pay.")
-                continue
-            print("Your loans:")
-            for l in loans:
-                print(f"Loan ID: {l[0]}, Remaining: {l[2]:.2f}, Status: {l[3]}")
-            try:
-                loan_id = int(input("Enter Loan ID to make payment: "))
-                amount = float(input("Enter payment amount: "))
-                payment.make_payment(loan_id, amount)
-            except ValueError:
-                print("Invalid input.")
+            payment.view_history(user_id)
 
         elif choice == '5':
-            try:
-                loan_id = int(input("Enter Loan ID to view payment history: "))
-                payments = payment.get_payment_history(loan_id)
-                if payments:
-                    for p in payments:
-                        print(f"Payment ID: {p[0]}, Amount: {p[1]:.2f}, Date: {p[2]}")
-                else:
-                    print("No payments found.")
-            except ValueError:
-                print("Invalid input.")
-
-        elif choice == '6':
-            print("Logging out...")
-            loan.close()
-            payment.close()
+            print("Logging out...\n")
             break
 
-        else:
-            print("Invalid option. Try again.")
 
 def start():
-    user = User()
-
     while True:
-        print("\n--- Welcome to the Loan Application System ---")
+        print("--- Welcome to the Loan Application System ---")
         print("1. Register")
         print("2. Login")
         print("3. Exit")
 
-        choice = input("Select an option: ")
+        choice = get_valid_option("Select an option: ", ['1', '2', '3'])
 
         if choice == '1':
-            username = input("Enter username: ")
+            username = input("Enter username: ").strip()
+            if not is_valid_username(username):
+                print("Username must be 3–30 characters, alphanumeric or underscore.")
+                continue
+
             password = getpass.getpass("Enter password: ")
+            if not is_valid_password(password):
+                print("Password cannot be empty.")
+                continue
+
             user.register(username, password)
 
         elif choice == '2':
-            username = input("Enter username: ")
+            username = input("Enter username: ").strip()
             password = getpass.getpass("Enter password: ")
-            if user.login(username, password):
-                # Fetch user id after login
-                user.db.execute("SELECT id FROM users WHERE username = %s", (username,))
-                user_id = user.db.fetchone()[0]
+
+            user_id = user.login(username, password)
+            if user_id:
                 main_menu(user_id, username)
-            else:
-                print("Login failed.")
 
         elif choice == '3':
-            print("Goodbye!")
-            user.close()
+            print("Thank you for using the Loan Application System.")
             break
 
-        else:
-            print("Invalid option. Try again.")
 
 if __name__ == "__main__":
     start()

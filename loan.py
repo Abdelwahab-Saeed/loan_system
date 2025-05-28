@@ -31,5 +31,19 @@ class Loan:
         result = self.db.fetchone()
         return float(result[0]) if result else 0.0
 
+    def check_balance(self, user_id: int):
+        loans = self.get_loans(user_id)
+        if not loans:
+            print("You have no loans.")
+            return
+
+        print("\n--- Your Loans ---")
+        for loan in loans:
+            loan_id, amount, remaining, status, created_at = loan
+            print(f"Loan ID: {loan_id}, Amount: {amount:.2f}, Remaining: {remaining:.2f}, Status: {status}, Created At: {created_at}")
+        
+        total = self.get_outstanding_balance(user_id)
+        print(f"\nTotal Outstanding Balance: {total:.2f}")
+
     def close(self):
         self.db.close()

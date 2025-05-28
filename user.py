@@ -30,20 +30,21 @@ class User:
         print("Registration successful!")
         return True
 
-    def login(self, username: str, password: str) -> bool:
-        self.db.execute("SELECT password_hash FROM users WHERE username = %s", (username,))
+    def login(self, username: str, password: str):
+        self.db.execute("SELECT id, password_hash FROM users WHERE username = %s", (username,))
         result = self.db.fetchone()
         if not result:
             print("Username not found.")
-            return False
-        
-        stored_hash = result[0].encode('utf-8')  # stored as string, convert back to bytes
-        if self.check_password(password, stored_hash):
+            return None  # Explicitly return None if login fails
+
+        user_id, stored_hash = result
+        if self.check_password(password, stored_hash.encode('utf-8')):
             print(f"Welcome back, {username}!")
-            return True
+            return user_id  # ✅ Return the actual user_id
         else:
             print("Incorrect password.")
-            return False
+            return None
+
 
     def close(self):
         self.db.close()
