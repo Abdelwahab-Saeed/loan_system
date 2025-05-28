@@ -6,7 +6,7 @@ class Loan:
 
     def apply_loan(self, user_id: int, amount: float) -> bool:
         if amount <= 0:
-            print("❌ Loan amount must be positive.")
+            print("Loan amount must be positive.")
             return False
 
         # Insert new loan with full amount as remaining balance, status active
@@ -15,7 +15,7 @@ class Loan:
         VALUES (%s, %s, %s, 'active')
         """
         self.db.execute(query, (user_id, amount, amount))
-        print(f"✅ Loan of {amount:.2f} applied successfully.")
+        print(f"Loan of {amount:.2f} applied successfully.")
         return True
 
     def get_loans(self, user_id: int):
